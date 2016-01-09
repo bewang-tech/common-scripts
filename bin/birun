@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Assume the script is in the module's bin/ dir
+SCRIPT_DIR=$(dirname $0)
+MODULE_DIR=$(dirname $SCRIPT_DIR)
+
+source $MODULE_DIR/lib/common/bootstrap.sh
+
+  usage() {
+      echo "Usage: $0 -i <include_file> command <command_arg> ..."
+      echo "    or $0 -i <include_file> command <command_arg> ..."
+      }
+
+INCLUDES=""
+while getopts "hi:" opt; do
+  case $opt in 
+    h) usage
+       exit
+       ;;
+    i) INCLUDES="$INCLUDES $OPTARG"
+       ;;
+  esac
+done
+
+shift $((OPTIND-1))
+cmd=$1
+if [ -z "$cmd" ]; then
+  error "Command is not found!"
+  exit -1
+fi
+shift
+args=$@
+
+source $LIB_DIR/common/setup_env.sh
+
+# Load the module
+require $MODULE_NAME
+
+# load additional included files
+for inc in $INCLUDES; do
+  info "Including $inc ..."
+  source $inc
+done
+
+info "Running $cmd ..."
+$cmd $args
+
+success "Done!"

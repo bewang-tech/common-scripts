@@ -1,0 +1,45 @@
+plugins {
+  id 'maven-publish'
+  id 'distribution'
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.8'
+}
+
+group="com.rhapsody.bi"
+version='1.0.0'
+
+distributions {
+  main {
+    contents {
+      into('bin') { from 'bin' }
+      into('conf') { from 'conf' }
+      into('ddl') { from 'ddl' }
+      into('lib') { from 'lib' }
+    }
+  }
+}
+
+distTar {
+  classifier = "scripts"
+  compression = Compression.GZIP
+}
+
+publishing {
+  repositories {
+    maven {
+      name  "rhapsody-bi"
+      url  "http://bi-hadoop-data-dev-1202:8080/nexus"
+    }
+  }
+  publications {
+    scripts(MavenPublication) {
+      groupId = project.group
+      artifactId = project.name
+      version = project.version
+
+      artifact distTar
+    }
+  }
+}
