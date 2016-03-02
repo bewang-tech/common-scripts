@@ -1,3 +1,5 @@
+require common/cdh
+
 yarn_num_nodes() {
   yarn node -list | head -1 | awk -F : '{print $2}'
 }
@@ -72,9 +74,14 @@ spark_hive() {
 
   read conf_file conf_opt <<< $(handle_conf)
 
+  local files=$HIVE_CONF_DIR/hive-site.xml,$conf_file
+  if [ -n "$MODULE_FILES" ]; then
+    files=$files,$MODULE_FILES
+  fi
+
   spark_yarn_submit \
-    --num-executors 3 \
-    --executor-cores 1 \
+    --num-executors 4 \
+    --executor-cores 2 \
     --executor-memory 1G \
     --name $app_name \
     --conf spark.sql.hive.metastore.version=0.13.1 \
@@ -83,7 +90,7 @@ spark_hive() {
     --conf spark.sql.caseSensitive=false \
     --driver-class-path $(datanucleus_jars) \
     --jars $MODULE_LIB_JARS \
-    --files $HIVE_CONF_DIR/hive-site.xml,$conf_file \
+    --files $files\
     --class $MODULE_APP_CLASS \
     $MODULE_JAR "$@" $conf_opt
 }
@@ -98,5 +105,5 @@ spark_hive_shell() {
     --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
     --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH \
     --conf spark.sql.caseSensitive=false \
-    --jars $MODULE_JAR
+    --jars $MODULE_JAR,$MODULE_LIB_JARS
 }

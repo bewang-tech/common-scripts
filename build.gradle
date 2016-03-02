@@ -1,50 +1,67 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        dependencies {
+            classpath "org.ajoberstar:grgit:1.3.0"
+        }
+    }
+}
+
 plugins {
-  id 'maven-publish'
-  id 'distribution'
+    id 'maven-publish'
+    id 'distribution'
+}
+
+ext {
+    git = org.ajoberstar.grgit.Grgit.open(currentDir: project.projectDir)
+    revision = git.head().id
+    gitVersion = git.describe().replaceFirst(/^(?i)v/, "")
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.10'
+    gradleVersion = '2.10'
 }
 
-group="com.rhapsody.bi"
-version='1.0.0'
+group = "com.rhapsody.bi"
+version = gitVersion
+description = "Rhapsody BI common bash scripts"
 
 repositories {
-  mavenLocal()
-}  
+    mavenLocal()
+}
 
 distributions {
-  main {
-    contents {
-      into('bin') { from 'bin' }
-      into('conf') { from 'conf' }
-      into('ddl') { from 'ddl' }
-      into('lib') { from 'lib' }
+    main {
+        contents {
+            into('bin') { from 'bin' }
+            into('conf') { from 'conf' }
+            into('ddl') { from 'ddl' }
+            into('lib') { from 'lib' }
+        }
     }
-  }
 }
 
 distTar {
-  classifier = "scripts"
-  compression = Compression.GZIP
+    classifier = "scripts"
+    compression = Compression.GZIP
 }
 
 publishing {
-  repositories {
-    mavenLocal()
-    maven {
-      name  "rhapsody-bi"
-      url  "http://bi-hadoop-data-dev-1202:8080/nexus"
+    repositories {
+        mavenLocal()
+        maven {
+            name "rhapsody-bi"
+            url "http://bi-hadoop-data-dev-1202:8080/nexus"
+        }
     }
-  }
-  publications {
-    scripts(MavenPublication) {
-      groupId = project.group
-      artifactId = project.name
-      version = project.version
+    publications {
+        scripts(MavenPublication) {
+            groupId = project.group
+            artifactId = project.name
+            version = project.version
 
-      artifact distTar
+            artifact distTar
+        }
     }
-  }
 }
