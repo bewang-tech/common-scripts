@@ -56,6 +56,10 @@ hive_metastore_classpath() {
   echo "$HIVE_CONF_DIR:$HIVE_LIB_DIR/*"
 }
 
+datanucleus_jars() {
+  find $HIVE_LIB_DIR -name "datanucleus*.jar" | tr '\n' :
+}
+
 spark_yarn_submit() {
   $SPARK_SUBMIT \
     --master yarn-cluster \
@@ -77,8 +81,22 @@ spark_hive() {
     --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
     --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH \
     --conf spark.sql.caseSensitive=false \
+    --driver-class-path $(datanucleus_jars) \
     --jars $MODULE_LIB_JARS \
     --files $conf_file \
     --class $MODULE_APP_CLASS \
     $MODULE_JAR "$@" $conf_opt
+}
+
+spark_hive_shell() {
+  $SPARK_SHELL \
+    --master yarn \
+    --num-executors 8 \
+    --executor-cores 3 \
+    --executor-memory 6G \
+    --conf spark.sql.hive.metastore.version=0.13.1 \
+    --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
+    --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH \
+    --conf spark.sql.caseSensitive=false \
+    --jars $MODULE_JAR
 }
