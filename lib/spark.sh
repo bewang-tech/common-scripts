@@ -54,6 +54,11 @@ HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
 
 GUAVA_CLASSPATH=$CDH_JARS/guava-15.0.jar
 
+# FIXME: this is a hack, we need to put in build.gradle
+# so that we don't have to care about the version if it changes
+# in the dependency
+JSCH_JAR=./jsch-0.1.53.jar
+
 hive_metastore_classpath() {
   echo "$HIVE_CONF_DIR:$HIVE_LIB_DIR/*"
 }
@@ -68,6 +73,9 @@ spark_yarn_submit() {
     --properties-file $SPARK_CONF "$@"
 }
 
+# This is for debug
+# --conf spark.driver.extraJavaOptions='-agentlib:jdwp=transport=dt_socket,server=y,address=4444,suspend=y'
+
 spark_hive() {
   local app_name=$1
   shift 1
@@ -79,6 +87,10 @@ spark_hive() {
     files=$files,$MODULE_FILES
   fi
 
+  # for yarn-class mode, we need to use --driver-class-path to put
+  # jsch and guava jar before the others in the class path
+  # so that the lower version of jsch and guava from hadoop jars
+  # can be overrided.
   spark_yarn_submit \
     --num-executors 4 \
     --executor-cores 2 \
@@ -86,9 +98,8 @@ spark_hive() {
     --name $app_name \
     --conf spark.sql.hive.metastore.version=0.13.1 \
     --conf spark.sql.hive.metastore.jars=hive-site.xml:$HIVE_LIB_DIR/* \
-    --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH \
     --conf spark.sql.caseSensitive=false \
-    --driver-class-path $(datanucleus_jars) \
+    --driver-class-path $(datanucleus_jars):$JSCH_JAR:$GUAVA_CLASSPATH \
     --jars $MODULE_LIB_JARS \
     --files $files\
     --class $MODULE_APP_CLASS \
