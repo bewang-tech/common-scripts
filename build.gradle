@@ -4,11 +4,15 @@ plugins {
 }
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '2.8'
+  gradleVersion = '2.10'
 }
 
 group="com.rhapsody.bi"
 version='1.0.0'
+
+repositories {
+  mavenLocal()
+}  
 
 distributions {
   main {
@@ -28,6 +32,7 @@ distTar {
 
 publishing {
   repositories {
+    mavenLocal()
     maven {
       name  "rhapsody-bi"
       url  "http://bi-hadoop-data-dev-1202:8080/nexus"

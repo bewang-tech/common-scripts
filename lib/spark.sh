@@ -19,11 +19,64 @@ to_spark_jars() {
 }
 
 # handle configuration file
+# if the user specified APP_CONF, return
+#  <the config file> <--app-conf conf_name>
+# otherwise
+#  <the config file name>
 handle_conf() {
-  local conf_name=$(basename $APP_CONF)
+  local app_conf=${APP_CONF:-application.conf}
+  local conf_name=$(basename $app_conf)
   local arg_conf=""
   if [ "$conf_name" != "application.conf" ]; then
-    arg_conf="--conf $conf_name"
+    arg_conf="--app-conf $conf_name"
   fi
-  echo $APP_CONF "$arg_conf"
+  echo $CONF_DIR/$app_conf "$arg_conf"
+}
+
+SPARK_VERSION=rhap1.6.0
+SPARK_RHAP=~/spark-rhap/spark-${SPARK_VERSION}
+
+SPARK_SUBMIT=$SPARK_RHAP/bin/spark-submit
+SPARK_SHELL=$SPARK_RHAP/bin/spark-shell
+SPARK_SQL=$SPARK_RHAP/bin/spark-sql
+
+SPARK_CONF=/etc/spark/conf/spark-defaults.conf
+
+export HADOOP_CONF_DIR=/etc/hadoop/conf
+export HIVE_CONF_DIR=/etc/hive/conf
+
+CDH_LIB_DIR=$(cdh_lib_dir)
+CDH_JARS=$CDH_LIB_DIR/../jars
+
+GUAVA_CLASSPATH=$CDH_JARS/guava-15.0.jar
+
+hive_metastore_classpath() {
+  echo "$HIVE_CONF_DIR:$HIVE_LIB_DIR/*"
+}
+
+spark_yarn_submit() {
+  $SPARK_SUBMIT \
+    --master yarn-cluster \
+    --properties-file $SPARK_CONF "$@"
+}
+
+spark_hive() {
+  local app_name=$1
+  shift 1
+
+  read conf_file conf_opt <<< $(handle_conf)
+
+  spark_yarn_submit \
+    --num-executors 3 \
+    --executor-cores 1 \
+    --executor-memory 1G \
+    --name $app_name \
+    --conf spark.sql.hive.metastore.version=0.13.1 \
+    --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
+    --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH \
+    --conf spark.sql.caseSensitive=false \
+    --jars $MODULE_LIB_JARS \
+    --files $conf_file \
+    --class $MODULE_APP_CLASS \
+    $MODULE_JAR "$@" $conf_opt
 }

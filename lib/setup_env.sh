@@ -6,8 +6,8 @@ require common/date
 require common/hdfs
 require common/java
 
-require conf/bi/env
-require conf/bi/env-site
+# require conf/bi/env
+# require conf/bi/env-site
 
 # LOAD module's env.sh
 require conf/env
