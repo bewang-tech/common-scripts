@@ -48,6 +48,8 @@ export HIVE_CONF_DIR=/etc/hive/conf
 CDH_LIB_DIR=$(cdh_lib_dir)
 CDH_JARS=$CDH_LIB_DIR/../jars
 
+HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
+
 GUAVA_CLASSPATH=$CDH_JARS/guava-15.0.jar
 
 hive_metastore_classpath() {
