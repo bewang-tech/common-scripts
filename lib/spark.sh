@@ -26,11 +26,11 @@ to_spark_jars() {
 handle_conf() {
   local app_conf=${APP_CONF:-application.conf}
   local conf_name=$(basename $app_conf)
-  local arg_conf=""
-  if [ "$conf_name" != "application.conf" ]; then
-    arg_conf="--app-conf $conf_name"
+  if [ "$conf_name" = "application.conf" ]; then
+    echo $CONF_DIR/$app_conf 
+  else
+    echo $app_conf --app-conf $conf_name
   fi
-  echo $CONF_DIR/$app_conf "$arg_conf"
 }
 
 SPARK_VERSION=rhap1.6.0
