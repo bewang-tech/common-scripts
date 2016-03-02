@@ -78,12 +78,12 @@ spark_hive() {
     --executor-memory 1G \
     --name $app_name \
     --conf spark.sql.hive.metastore.version=0.13.1 \
-    --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
+    --conf spark.sql.hive.metastore.jars=hive-site.xml:$HIVE_LIB_DIR/* \
     --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH \
     --conf spark.sql.caseSensitive=false \
     --driver-class-path $(datanucleus_jars) \
     --jars $MODULE_LIB_JARS \
-    --files $conf_file \
+    --files $HIVE_CONF_DIR/hive-site.xml,$conf_file \
     --class $MODULE_APP_CLASS \
     $MODULE_JAR "$@" $conf_opt
 }
