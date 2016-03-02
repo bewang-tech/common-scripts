@@ -47,6 +47,10 @@ distTar {
     compression = Compression.GZIP
 }
 
+distZip {
+    classifier = "scripts"
+}
+
 publishing {
     repositories {
         mavenLocal()
