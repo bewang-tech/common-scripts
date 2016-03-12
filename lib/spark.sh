@@ -88,7 +88,7 @@ spark_hive() {
   fi
 
   local exec_extra=""
-  if [ -n "$MODULE_EXE_CP_JARS"]; then
+  if [ -n "$MODULE_EXEC_CP_JARS" ]; then
     exec_extra="--conf spark.sql.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
@@ -114,6 +114,11 @@ spark_hive() {
 spark_hive_shell() {
   read conf_file conf_opt <<< $(handle_conf)
 
+  local exec_extra=""
+  if [ -n "$MODULE_EXEC_CP_JARS" ]; then
+    exec_extra="--conf spark.sql.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
+  fi
+
   $SPARK_SHELL \
     --master yarn \
     --num-executors 8 \
@@ -121,7 +126,7 @@ spark_hive_shell() {
     --executor-memory 6G \
     --conf spark.sql.hive.metastore.version=0.13.1 \
     --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
-    --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH \
+    --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH $exec_extra \
     --conf spark.sql.caseSensitive=false \
     --conf spark.app.config=$conf_file \
     --jars $MODULE_JAR,$MODULE_LIB_JARS
