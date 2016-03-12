@@ -34,7 +34,9 @@ args=$@
 source $LIB_DIR/common/setup_env.sh
 
 # Load the module
-require $MODULE_NAME
+if [ -f "$LIB_DIR/$MODULE_NAME" ]; then
+  require $MODULE_NAME
+fi
 
 # load additional included files
 for inc in $INCLUDES; do
