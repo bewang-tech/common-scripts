@@ -87,6 +87,11 @@ spark_hive() {
     driver_cp=$driver_cp:$MODULE_DRIVER_CP_JARS
   fi
 
+  local exec_extra=""
+  if [ -n "$MODULE_EXE_CP_JARS"]; then
+    exec_extra="--conf spark.sql.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
+  fi
+
   # for yarn-class mode, we need to use --driver-class-path to put
   # jsch and guava jar before the others in the class path
   # so that the lower version of jsch and guava from hadoop jars
@@ -99,7 +104,7 @@ spark_hive() {
     --conf spark.sql.hive.metastore.version=0.13.1 \
     --conf spark.sql.hive.metastore.jars=hive-site.xml:$HIVE_LIB_DIR/* \
     --conf spark.sql.caseSensitive=false \
-    --driver-class-path $driver_cp \
+    --driver-class-path $driver_cp $exec_extra \
     --jars $MODULE_LIB_JARS \
     --files $files\
     --class $MODULE_APP_CLASS \
