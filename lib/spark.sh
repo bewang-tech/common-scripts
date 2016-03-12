@@ -89,7 +89,7 @@ spark_hive() {
 
   local exec_extra=""
   if [ -n "$MODULE_EXEC_CP_JARS" ]; then
-    exec_extra="--conf spark.sql.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
+    exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
   # for yarn-class mode, we need to use --driver-class-path to put
@@ -116,7 +116,7 @@ spark_hive_shell() {
 
   local exec_extra=""
   if [ -n "$MODULE_EXEC_CP_JARS" ]; then
-    exec_extra="--conf spark.sql.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
+    exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
   $SPARK_SHELL \
