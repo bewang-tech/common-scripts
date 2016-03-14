@@ -92,14 +92,18 @@ spark_hive() {
     exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
+  local num_executors=${NUM_EXECUTORS:-4}
+  local num_cores=${NUM_EXECUTOR_CORE:-2}
+  local exec_mem=${EXECUTOR_MEM:-1G}
+
   # for yarn-class mode, we need to use --driver-class-path to put
   # jsch and guava jar before the others in the class path
   # so that the lower version of jsch and guava from hadoop jars
   # can be overrided.
   spark_yarn_submit \
-    --num-executors 4 \
-    --executor-cores 2 \
-    --executor-memory 1G \
+    --num-executors $num_executors \
+    --executor-cores $num_cores \
+    --executor-memory $exec_mem \
     --name $app_name \
     --conf spark.sql.hive.metastore.version=0.13.1 \
     --conf spark.sql.hive.metastore.jars=hive-site.xml:$HIVE_LIB_DIR/* \
@@ -119,11 +123,15 @@ spark_hive_shell() {
     exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
+  local num_executors=${SH_NUM_EXECUTORS:-8}
+  local num_cores=${SH_NUM_EXECUTOR_CORE:-3}
+  local exec_mem=${SH_EXECUTOR_MEM:-6G}
+
   $SPARK_SHELL \
     --master yarn \
-    --num-executors 8 \
-    --executor-cores 3 \
-    --executor-memory 6G \
+    --num-executors $num_executors \
+    --executor-cores $num_cores \
+    --executor-memory $exec_mem \
     --conf spark.sql.hive.metastore.version=0.13.1 \
     --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
     --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH $exec_extra \
