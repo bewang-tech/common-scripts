@@ -92,8 +92,8 @@ spark_hive() {
     exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
-  local num_executors=${NUM_EXECUTORS:-4}
-  local num_cores=${NUM_EXECUTOR_CORE:-2}
+  local num_executors=${EXECUTORS:-4}
+  local num_cores=${EXECUTOR_CORES:-2}
   local exec_mem=${EXECUTOR_MEM:-1G}
 
   # for yarn-class mode, we need to use --driver-class-path to put
@@ -123,9 +123,9 @@ spark_hive_shell() {
     exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
-  local num_executors=${SH_NUM_EXECUTORS:-8}
-  local num_cores=${SH_NUM_EXECUTOR_CORE:-3}
-  local exec_mem=${SH_EXECUTOR_MEM:-6G}
+  local num_executors=${EXECUTORS:-8}
+  local num_cores=${EXECUTOR_CORES:-3}
+  local exec_mem=${EXECUTOR_MEM:-6G}
 
   $SPARK_SHELL \
     --master yarn \
