@@ -92,9 +92,9 @@ spark_hive() {
     exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
-  local num_executors=${EXECUTORS:-4}
-  local num_cores=${EXECUTOR_CORES:-2}
-  local exec_mem=${EXECUTOR_MEM:-1G}
+  local num_executors=${EXECUTORS:-12}
+  local num_cores=${EXECUTOR_CORES:-3}
+  local exec_mem=${EXECUTOR_MEM:-6G}
 
   # for yarn-class mode, we need to use --driver-class-path to put
   # jsch and guava jar before the others in the class path
@@ -123,7 +123,7 @@ spark_hive_shell() {
     exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
-  local num_executors=${EXECUTORS:-8}
+  local num_executors=${EXECUTORS:-12}
   local num_cores=${EXECUTOR_CORES:-3}
   local exec_mem=${EXECUTOR_MEM:-6G}
 
