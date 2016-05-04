@@ -64,6 +64,7 @@ setup_guava_path() {
     GUAVA_CLASSPATH=$cdh_path
   elif [ -f "$lib_path" ]; then
     GUAVA_CLASSPATH=./$GUAVA_JAR
+    GUAVA_LOCAL_PATH=$lib_path
   else
     error "$GUAVA_JAR does not exist at both $cdh_path and $lib_path."
     exit -1
@@ -146,8 +147,8 @@ spark_hive_shell() {
   local num_cores=${EXECUTOR_CORES:-3}
   local exec_mem=${EXECUTOR_MEM:-6G}
 
-  if [[ $GUAVA_CLASSPATH =~ ^\\. ]]; then
-    SPARK_EXTRA_OPTIONS="$SPARK_EXTRA_OPTIONS --files $GUAVA_CLASSPATH"
+  if [[ $GUAVA_CLASSPATH =~ ^\. ]]; then
+    SPARK_EXTRA_OPTIONS="$SPARK_EXTRA_OPTIONS --files $GUAVA_LOCAL_PATH"
   fi
 
   $SPARK_SHELL \
