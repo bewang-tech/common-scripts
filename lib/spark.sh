@@ -52,7 +52,21 @@ CDH_JARS=$CDH_LIB_DIR/../jars
 
 HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
 
-GUAVA_CLASSPATH=$CDH_JARS/guava-15.0.jar
+GUAVA_JAR=${GUAVA_JAR:-guava-15.0.jar}
+
+SUBMIT_EXTRA_OPTIONS=${SUBMIT_EXTRA_OPTIONS:-}
+SHELL_EXTRA_OPTIONS=${SHELL_EXTRA_OPTIONS:-}
+
+setup_guava_path() {
+  local cdh_path=$CDH_JARS/$GUAVA_JAR
+  local lib_path=$LIB_DIR/$GUAVA_JAR
+
+  if [ -f "$cdh_path" ]; then
+    GUAVA_CLASSPATH=$cdh_path
+  elif [ -f "$lib_path" ]; then
+    GUAVA_CLASSPATH=./$GUAVA_JAR
+  fi
+}
 
 hive_metastore_classpath() {
   echo "$HIVE_CONF_DIR:$HIVE_LIB_DIR/*"
@@ -87,9 +101,9 @@ spark_hive() {
     driver_cp=$driver_cp:$MODULE_DRIVER_CP_JARS
   fi
 
-  local exec_extra=""
+  local exec_extra_cp=$GUAVA_CLASSPATH
   if [ -n "$MODULE_EXEC_CP_JARS" ]; then
-    exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
+    exec_extra_cp="$exec_extra_cp:$MODULE_EXEC_CP_JARS"
   fi
 
   local num_executors=${EXECUTORS:-12}
@@ -108,24 +122,29 @@ spark_hive() {
     --conf spark.sql.hive.metastore.version=0.13.1 \
     --conf spark.sql.hive.metastore.jars=hive-site.xml:$HIVE_LIB_DIR/* \
     --conf spark.sql.caseSensitive=false \
-    --driver-class-path $driver_cp $exec_extra \
+    --conf spark.executor.extraClassPath=$exec_extra_cp \
+    --driver-class-path $driver_cp \
     --jars $MODULE_LIB_JARS \
     --files $files\
-    --class $MODULE_APP_CLASS \
+    --class $MODULE_APP_CLASS $SUBMIT_EXTRA_OPTIONS \
     $MODULE_JAR "$@" $conf_opt
 }
 
 spark_hive_shell() {
   read conf_file conf_opt <<< $(handle_conf)
 
-  local exec_extra=""
+  local exec_extra_cp="$GUAVA_CLASSPATH"
   if [ -n "$MODULE_EXEC_CP_JARS" ]; then
-    exec_extra="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
+    exec_extra_cp="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
   fi
 
   local num_executors=${EXECUTORS:-12}
   local num_cores=${EXECUTOR_CORES:-3}
   local exec_mem=${EXECUTOR_MEM:-6G}
+
+  if [ $GUAVA_CLASSPATH =~ ^\. ]; then
+    SHELL_EXTRA_OPTIONS="$SHELL_EXTRA_OPTIONS --files $GUAVA_CLASSPATH"
+  fi
 
   $SPARK_SHELL \
     --master yarn \
@@ -134,8 +153,9 @@ spark_hive_shell() {
     --executor-memory $exec_mem \
     --conf spark.sql.hive.metastore.version=0.13.1 \
     --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
-    --conf spark.driver.extraClassPath=$GUAVA_CLASSPATH $exec_extra \
     --conf spark.sql.caseSensitive=false \
     --conf spark.app.config=$conf_file \
-    --jars $MODULE_JAR,$MODULE_LIB_JARS
+    --conf spark.executor.extraClassPath=$exec_extra_cp \
+    --driver-class-path $GUAVA_CLASSPATH \
+    --jars $MODULE_JAR,$MODULE_LIB_JARS $SHELL_EXTRA_OPTIONS
 }
