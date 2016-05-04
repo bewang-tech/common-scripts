@@ -162,5 +162,5 @@ spark_hive_shell() {
     --conf spark.app.config=$conf_file \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
     --driver-class-path $GUAVA_CLASSPATH \
-    --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS
+    --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS "$@"
 }
