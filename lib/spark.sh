@@ -64,8 +64,13 @@ setup_guava_path() {
     GUAVA_CLASSPATH=$cdh_path
   elif [ -f "$lib_path" ]; then
     GUAVA_CLASSPATH=./$GUAVA_JAR
+  else
+    error "$GUAVA_JAR does not exist at both $cdh_path and $lib_path."
+    exit -1
   fi
 }
+
+setup_guava_path
 
 hive_metastore_classpath() {
   echo "$HIVE_CONF_DIR:$HIVE_LIB_DIR/*"
