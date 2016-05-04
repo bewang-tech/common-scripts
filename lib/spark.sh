@@ -54,8 +54,7 @@ HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
 
 GUAVA_JAR=${GUAVA_JAR:-guava-15.0.jar}
 
-SUBMIT_EXTRA_OPTIONS=${SUBMIT_EXTRA_OPTIONS:-}
-SHELL_EXTRA_OPTIONS=${SHELL_EXTRA_OPTIONS:-}
+SPARK_EXTRA_OPTIONS=${SPARK_EXTRA_OPTIONS:-}
 
 setup_guava_path() {
   local cdh_path=$CDH_JARS/$GUAVA_JAR
@@ -126,7 +125,7 @@ spark_hive() {
     --driver-class-path $driver_cp \
     --jars $MODULE_LIB_JARS \
     --files $files\
-    --class $MODULE_APP_CLASS $SUBMIT_EXTRA_OPTIONS \
+    --class $MODULE_APP_CLASS $SPARK_EXTRA_OPTIONS \
     $MODULE_JAR "$@" $conf_opt
 }
 
@@ -142,8 +141,8 @@ spark_hive_shell() {
   local num_cores=${EXECUTOR_CORES:-3}
   local exec_mem=${EXECUTOR_MEM:-6G}
 
-  if [ $GUAVA_CLASSPATH =~ ^\. ]; then
-    SHELL_EXTRA_OPTIONS="$SHELL_EXTRA_OPTIONS --files $GUAVA_CLASSPATH"
+  if [ $GUAVA_CLASSPATH =~ ^\\. ]; then
+    SPARK_EXTRA_OPTIONS="$SPARK_EXTRA_OPTIONS --files $GUAVA_CLASSPATH"
   fi
 
   $SPARK_SHELL \
@@ -157,5 +156,5 @@ spark_hive_shell() {
     --conf spark.app.config=$conf_file \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
     --driver-class-path $GUAVA_CLASSPATH \
-    --jars $MODULE_JAR,$MODULE_LIB_JARS $SHELL_EXTRA_OPTIONS
+    --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS
 }
