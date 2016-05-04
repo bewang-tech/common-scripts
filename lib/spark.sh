@@ -141,7 +141,7 @@ spark_hive_shell() {
   local num_cores=${EXECUTOR_CORES:-3}
   local exec_mem=${EXECUTOR_MEM:-6G}
 
-  if [ $GUAVA_CLASSPATH =~ ^\\. ]; then
+  if [[ $GUAVA_CLASSPATH =~ ^\\. ]]; then
     SPARK_EXTRA_OPTIONS="$SPARK_EXTRA_OPTIONS --files $GUAVA_CLASSPATH"
   fi
 
