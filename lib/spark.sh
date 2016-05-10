@@ -175,10 +175,10 @@ spark_streaming() {
     files=$files,$MODULE_FILES
   fi
 
-  $SPARK_SUBMIT \
+  spark_yarn_submit \
     --conf spark.streaming.stopGracefullyOnShutdown=true \
     --conf spark.yarn.submit.waitAppCompletion=false \
     --files $files \
-    --jars $MODULE_LIB_JARS "$options" \
-    $MODULE_JAR
+    --jars $MODULE_LIB_JARS $options \
+    $MODULE_JAR $conf_opt
 }
