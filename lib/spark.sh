@@ -164,3 +164,21 @@ spark_hive_shell() {
     --driver-class-path $GUAVA_CLASSPATH \
     --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS "$@"
 }
+
+spark_streaming() {
+  local options="$@"
+
+  read conf_file conf_opt <<< $(handle_conf)
+
+  local files=$conf_file
+  if [ -n "$MODULE_FILES" ]; then
+    files=$files,$MODULE_FILES
+  fi
+
+  $SPARK_SUBMIT \
+    --conf spark.streaming.stopGracefullyOnShutdown=true \
+    --conf spark.yarn.submit.waitAppCompletion=false \
+    --files $files \
+    --jars $MODULE_LIB_JARS "$options" \
+    $MODULE_JAR
+}
