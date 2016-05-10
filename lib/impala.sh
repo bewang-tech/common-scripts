@@ -1,3 +1,6 @@
+impala_host() {
+  yarn node -list -states RUNNING | tail -1 | cut -f 1 | cut -f 1 -d :
+}
 
 impala() {
   if [ -z $IMPALA_HOST ]; then
