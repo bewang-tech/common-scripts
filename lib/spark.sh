@@ -166,6 +166,8 @@ spark_hive_shell() {
 }
 
 spark_streaming() {
+  local app_name=$1
+  shift
   local options="$@"
 
   read conf_file conf_opt <<< $(handle_conf)
@@ -175,10 +177,19 @@ spark_streaming() {
     files=$files,$MODULE_FILES
   fi
 
+  local num_executors=${EXECUTORS:-3}
+  local num_cores=${EXECUTOR_CORES:-1}
+  local exec_mem=${EXECUTOR_MEM:-1G}
+
   spark_yarn_submit \
+    --name $app_name \
+    --num-executors $num_executors \
+    --executor-cores $num_cores \
+    --executor-memory $exec_mem \
     --conf spark.streaming.stopGracefullyOnShutdown=true \
     --conf spark.yarn.submit.waitAppCompletion=false \
     --files $files \
-    --jars $MODULE_LIB_JARS $options \
-    $MODULE_JAR $conf_opt
+    --class $MODULE_APP_CLASS \
+    --jars $MODULE_LIB_JARS \
+    $MODULE_JAR $conf_opt $options
 }
