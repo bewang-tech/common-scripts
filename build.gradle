@@ -53,10 +53,13 @@ distZip {
 
 publishing {
     repositories {
-        mavenLocal()
         maven {
-            name "rhapsody-bi"
-            url "http://bi-hadoop-data-dev-1202:8080/nexus"
+            name "rhapsody"
+            url "http://maven01.internal.rhapsody.com/nexus/content/repositories/releases"
+	    credentials {
+	      username "$mavenUser"
+	      password "$mavenPassword"
+	    }
         }
     }
     publications {
