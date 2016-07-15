@@ -27,10 +27,6 @@ group = "com.rhapsody.bi"
 version = gitVersion
 description = "Rhapsody BI common bash scripts"
 
-repositories {
-    mavenLocal()
-}
-
 distributions {
     main {
         contents {
