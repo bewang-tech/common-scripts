@@ -138,9 +138,14 @@ spark_hive() {
 spark_hive_shell() {
   read conf_file conf_opt <<< $(handle_conf)
 
+  local driver_cp=$GUAVA_CLASSPATH
+  if [ -n "$MODULE_DRIVER_CP_JARS" ]; then
+    driver_cp=$driver_cp:$MODULE_DRIVER_CP_JARS
+  fi
+
   local exec_extra_cp="$GUAVA_CLASSPATH"
   if [ -n "$MODULE_EXEC_CP_JARS" ]; then
-    exec_extra_cp="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
+    exec_extra_cp=$exec_extra_cp,$MODULE_EXEC_CP_JARS
   fi
 
   local num_executors=${EXECUTORS:-12}
@@ -161,7 +166,7 @@ spark_hive_shell() {
     --conf spark.sql.caseSensitive=false \
     --conf spark.app.config=$conf_file \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
-    --driver-class-path $GUAVA_CLASSPATH \
+    --driver-class-path $driver_cp \
     --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS "$@"
 }
 
