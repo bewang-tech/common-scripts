@@ -139,8 +139,8 @@ spark_hive_shell() {
   read conf_file conf_opt <<< $(handle_conf)
 
   local driver_cp=$GUAVA_CLASSPATH
-  if [ -n "$MODULE_DRIVER_CP_JARS" ]; then
-    driver_cp=$driver_cp:$MODULE_DRIVER_CP_JARS
+  if [ -n "$MODULE_SH_DRIVER_CP_JARS" ]; then
+    driver_cp=$driver_cp:$MODULE_SH_DRIVER_CP_JARS
   fi
 
   local exec_extra_cp="$GUAVA_CLASSPATH"
