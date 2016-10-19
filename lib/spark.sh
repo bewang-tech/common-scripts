@@ -145,7 +145,7 @@ spark_hive_shell() {
 
   local exec_extra_cp="$GUAVA_CLASSPATH"
   if [ -n "$MODULE_EXEC_CP_JARS" ]; then
-    exec_extra_cp=$exec_extra_cp,$MODULE_EXEC_CP_JARS
+    exec_extra_cp=$exec_extra_cp:$MODULE_EXEC_CP_JARS
   fi
 
   local num_executors=${EXECUTORS:-12}
