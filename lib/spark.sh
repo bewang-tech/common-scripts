@@ -35,8 +35,8 @@ handle_conf() {
   fi
 }
 
-SPARK_VERSION=rhap1.6.0
-SPARK_RHAP=~/spark-rhap/spark-${SPARK_VERSION}
+SPARK_VERSION=rhap2.0.1
+SPARK_RHAP=/opt/spark-rhap/spark-${SPARK_VERSION}
 
 SPARK_SUBMIT=$SPARK_RHAP/bin/spark-submit
 SPARK_SHELL=$SPARK_RHAP/bin/spark-shell
