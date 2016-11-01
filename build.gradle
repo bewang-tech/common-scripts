@@ -23,7 +23,7 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.10'
 }
 
-group = "com.rhapsody.bi"
+group = "com.napster.bi"
 version = gitVersion
 description = "Rhapsody BI common bash scripts"
 
