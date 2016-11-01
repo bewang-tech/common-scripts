@@ -35,8 +35,9 @@ handle_conf() {
   fi
 }
 
-SPARK_VERSION=rhap2.0.1
-SPARK_RHAP=/opt/spark-rhap/spark-${SPARK_VERSION}
+SPARK_RHAP_HOME=${SPARK_RHAP_HOME:-/opt/spark-rhap}
+SPARK_VERSION=${SPARK_VERSION:-rhap2.0.1}
+SPARK_RHAP=${SPARK_RHAP_HOME}/spark-${SPARK_VERSION}
 
 SPARK_SUBMIT=$SPARK_RHAP/bin/spark-submit
 SPARK_SHELL=$SPARK_RHAP/bin/spark-shell
@@ -44,8 +45,8 @@ SPARK_SQL=$SPARK_RHAP/bin/spark-sql
 
 SPARK_CONF=/etc/spark/conf/spark-defaults.conf
 
-export HADOOP_CONF_DIR=/etc/hadoop/conf
-export HIVE_CONF_DIR=/etc/hive/conf
+export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-/etc/hadoop/conf}
+export HIVE_CONF_DIR=${HIVE_CONF_DIR:-/etc/hive/conf}
 
 CDH_LIB_DIR=$(cdh_lib_dir)
 CDH_JARS=$CDH_LIB_DIR/../jars
