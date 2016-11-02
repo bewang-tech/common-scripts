@@ -45,11 +45,16 @@ SPARK_SQL=$SPARK_RHAP/bin/spark-sql
 
 SPARK_CONF=/etc/spark/conf/spark-defaults.conf
 
+HDFS_NAME_SERVICE=${HDFS_NAME_SERVICE:-$(hdfs getconf -confKey dfs.nameservices)}
+SPARK_RHAP_YARN_ARCHIVE=hdfs://${HDFS_NAME_SERVICE}/bi/spark-rhap/spark-rhap2.0.1.zip 
+
 export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-/etc/hadoop/conf}
 export HIVE_CONF_DIR=${HIVE_CONF_DIR:-/etc/hive/conf}
 
 CDH_LIB_DIR=$(cdh_lib_dir)
 CDH_JARS=$CDH_LIB_DIR/../jars
+
+export LD_LIBRARY_PATH=$CDH_LIB_DIR/hadoop/lib/native
 
 HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
 
@@ -129,6 +134,9 @@ spark_hive() {
     --conf spark.sql.hive.metastore.jars=hive-site.xml:$HIVE_LIB_DIR/* \
     --conf spark.sql.caseSensitive=false \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
+    --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
+    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
+    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
     --driver-class-path $driver_cp \
     --jars $MODULE_LIB_JARS \
     --files $files\
@@ -167,6 +175,9 @@ spark_hive_shell() {
     --conf spark.sql.caseSensitive=false \
     --conf spark.app.config=$conf_file \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
+    --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
+    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
+    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
     --driver-class-path $driver_cp \
     --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS "$@"
 }
