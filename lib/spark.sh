@@ -135,8 +135,8 @@ spark_hive() {
     --conf spark.sql.caseSensitive=false \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
     --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
-    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
-    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
+    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
+    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
     --driver-class-path $driver_cp \
     --jars $MODULE_LIB_JARS \
     --files $files\
@@ -176,8 +176,8 @@ spark_hive_shell() {
     --conf spark.app.config=$conf_file \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
     --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
-    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
-    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
+    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
+    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
     --driver-class-path $driver_cp \
     --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS "$@"
 }
