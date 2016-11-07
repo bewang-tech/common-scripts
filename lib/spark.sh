@@ -58,7 +58,7 @@ export LD_LIBRARY_PATH=$CDH_LIB_DIR/hadoop/lib/native
 
 HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
 
-GUAVA_JAR=${GUAVA_JAR:-guava-16.0.jar}
+GUAVA_JAR=${GUAVA_JAR:-guava-16.0.1.jar}
 
 SPARK_EXTRA_OPTIONS=${SPARK_EXTRA_OPTIONS:-}
 
