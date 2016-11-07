@@ -58,7 +58,7 @@ export LD_LIBRARY_PATH=$CDH_LIB_DIR/hadoop/lib/native
 
 HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
 
-GUAVA_JAR=${GUAVA_JAR:-guava-15.0.jar}
+GUAVA_JAR=${GUAVA_JAR:-guava-16.0.jar}
 
 SPARK_EXTRA_OPTIONS=${SPARK_EXTRA_OPTIONS:-}
 
@@ -176,8 +176,8 @@ spark_hive_shell() {
     --conf spark.app.config=$conf_file \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
     --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
-    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
-    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
+    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
+    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
     --driver-class-path $driver_cp \
     --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS "$@"
 }
