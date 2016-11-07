@@ -147,7 +147,7 @@ spark_hive() {
 spark_hive_shell() {
   read conf_file conf_opt <<< $(handle_conf)
 
-  local driver_cp=$GUAVA_CLASSPATH
+  local driver_cp=$CONF_DIR:$GUAVA_CLASSPATH
   if [ -n "$MODULE_SH_DRIVER_CP_JARS" ]; then
     driver_cp=$driver_cp:$MODULE_SH_DRIVER_CP_JARS
   fi
@@ -176,8 +176,8 @@ spark_hive_shell() {
     --conf spark.app.config=$conf_file \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
     --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
-    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
-    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LIB_LIBRARY_PATH \
+    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
+    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
     --driver-class-path $driver_cp \
     --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS "$@"
 }
