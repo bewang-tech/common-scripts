@@ -89,7 +89,8 @@ datanucleus_jars() {
 
 spark_yarn_submit() {
   $SPARK_SUBMIT \
-    --master yarn-cluster \
+    --master yarn \
+    --deploy-mode cluster
     --properties-file $SPARK_CONF "$@"
 }
 
