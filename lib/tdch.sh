@@ -58,3 +58,23 @@ export_table() {
     -sourcedatabase $hive_db \
     -targettable $td_table
 }
+
+export_table_partitions() {
+  local hive_table=$1
+  local td_table=$2
+  local add_query=$3
+  local drop_query=$4
+
+  info "Dropping the existing partitions of ${hive_table} ..."
+  if [ -z "$drop_query" ]; then
+    info "No partition exists."
+  else
+    impala -q "$drop_query"
+  fi
+
+  info "Adding the partitions being exported into ${hive_table} ..."
+  impala -q "$add_query"
+
+  info "Loading ${hive_table} to Teradata ${td_table} ..."
+  export_table ${hive_table} ${td_table}
+}
