@@ -2,12 +2,10 @@ impala_host() {
   yarn node -list -states RUNNING | tail -1 | cut -f 1 | cut -f 1 -d :
 }
 
+IMPALA_HOST=${IMPALA_HOST:-$(impala_host)}
+
 impala() {
-  if [ -z $IMPALA_HOST ]; then
-    impala-shell "$@"
-  else
-    impala-shell -i $IMPALA_HOST "$@"
-  fi
+  impala-shell -i $IMPALA_HOST "$@"
 }
 
 impala_refresh() {
