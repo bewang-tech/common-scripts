@@ -48,6 +48,7 @@ tdch_export() {
 export_table() {
   local hive_table_name=$1
   local td_table_name=$2
+  shift 2
 
   IFS='.' read hive_db hive_table <<<$(echo $hive_table_name)
   IFS='.' read td_db td_table <<<$(echo $td_table_name)
@@ -57,7 +58,7 @@ export_table() {
   tdch_export \
     -sourcetable $hive_table \
     -sourcedatabase $hive_db \
-    -targettable $td_table
+    -targettable $td_table "$@"
 }
 
 export_table_partitions() {
@@ -65,6 +66,7 @@ export_table_partitions() {
   local td_table=$2
   local add_query=$3
   local drop_query=$4
+  shift 4
 
   info "Dropping the existing partitions of ${hive_table} ..."
   if [ -z "$drop_query" ]; then
@@ -77,5 +79,5 @@ export_table_partitions() {
   impala -q "$add_query"
 
   info "Loading ${hive_table} to Teradata ${td_table} ..."
-  export_table ${hive_table} ${td_table}
+  export_table ${hive_table} ${td_table} "$@"
 }
