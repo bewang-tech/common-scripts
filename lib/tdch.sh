@@ -27,7 +27,8 @@ export HADOOP_CLASSPATH=$(echo ${TERADATA_JDBC_JARS} | tr ' ' ':'):$(hcat -class
 
 export_options() {
   local name=$1
-  echo "-Dmapreduce.job.name=export-${name} -Dmapreduce.job.queuename=${EXPORT_QUEUE}"
+  local job_name=${EXPORT_JOB_NAME:-export-${name}}
+  echo "-Dmapreduce.job.name=$job_name -Dmapreduce.job.queuename=${EXPORT_QUEUE}"
 }
 
 # the caller of this function must provide TERADATA_DB
