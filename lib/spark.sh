@@ -97,9 +97,11 @@ spark_yarn_submit() {
 # This is for debug
 # --conf spark.driver.extraJavaOptions='-agentlib:jdwp=transport=dt_socket,server=y,address=4444,suspend=y'
 
-spark_hive() {
-  local app_name=$1
-  shift 1
+spark_hive_run() {
+  local app_name_args=""
+  if [ -n "$APP_NAME" ]; then
+    app_name_args="--name $APP_NAME"
+  fi
 
   read conf_file conf_opt <<< $(handle_conf)
 
@@ -129,8 +131,7 @@ spark_hive() {
   spark_yarn_submit \
     --num-executors $num_executors \
     --executor-cores $num_cores \
-    --executor-memory $exec_mem \
-    --name $app_name \
+    --executor-memory $exec_mem $app_name_args \
     --conf spark.sql.hive.metastore.version=0.13.1 \
     --conf spark.sql.hive.metastore.jars=hive-site.xml:$HIVE_LIB_DIR/* \
     --conf spark.sql.caseSensitive=false \
@@ -143,6 +144,13 @@ spark_hive() {
     --files $files\
     --class $MODULE_APP_CLASS $SPARK_EXTRA_OPTIONS \
     $MODULE_JAR "$@" $conf_opt
+}
+
+spark_hive() {
+  local app_name=$1
+  shift 1
+
+  APP_NAME=$app_name spark_hive_run "$@"
 }
 
 spark_hive_shell() {
