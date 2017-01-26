@@ -1,16 +1,8 @@
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        dependencies {
-            classpath "org.ajoberstar:grgit:1.3.0"
-        }
-    }
-}
-
 plugins {
     id 'maven-publish'
     id 'distribution'
+
+    id "org.ajoberstar.grgit" version "1.6.0"
 }
 
 ext {
@@ -20,7 +12,7 @@ ext {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.10'
+    gradleVersion = '3.3'
 }
 
 group = "com.napster.bi"
