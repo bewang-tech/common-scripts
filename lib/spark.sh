@@ -35,8 +35,9 @@ handle_conf() {
   fi
 }
 
-SPARK_VERSION=rhap1.6.0
-SPARK_RHAP=~/spark-rhap/spark-${SPARK_VERSION}
+SPARK_RHAP_HOME=${SPARK_RHAP_HOME:-/opt/spark-rhap}
+SPARK_VERSION=${SPARK_VERSION:-rhap2.0.1}
+SPARK_RHAP=${SPARK_RHAP_HOME}/spark-${SPARK_VERSION}
 
 SPARK_SUBMIT=$SPARK_RHAP/bin/spark-submit
 SPARK_SHELL=$SPARK_RHAP/bin/spark-shell
@@ -44,15 +45,20 @@ SPARK_SQL=$SPARK_RHAP/bin/spark-sql
 
 SPARK_CONF=/etc/spark/conf/spark-defaults.conf
 
-export HADOOP_CONF_DIR=/etc/hadoop/conf
-export HIVE_CONF_DIR=/etc/hive/conf
+HDFS_NAME_SERVICE=${HDFS_NAME_SERVICE:-$(hdfs getconf -confKey dfs.nameservices)}
+SPARK_RHAP_YARN_ARCHIVE=hdfs://${HDFS_NAME_SERVICE}/bi/spark-rhap/spark-rhap2.0.1.zip 
+
+export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-/etc/hadoop/conf}
+export HIVE_CONF_DIR=${HIVE_CONF_DIR:-/etc/hive/conf}
 
 CDH_LIB_DIR=$(cdh_lib_dir)
 CDH_JARS=$CDH_LIB_DIR/../jars
 
+export LD_LIBRARY_PATH=$CDH_LIB_DIR/hadoop/lib/native
+
 HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
 
-GUAVA_JAR=${GUAVA_JAR:-guava-15.0.jar}
+GUAVA_JAR=${GUAVA_JAR:-guava-16.0.1.jar}
 
 SPARK_EXTRA_OPTIONS=${SPARK_EXTRA_OPTIONS:-}
 
@@ -83,16 +89,19 @@ datanucleus_jars() {
 
 spark_yarn_submit() {
   $SPARK_SUBMIT \
-    --master yarn-cluster \
+    --master yarn \
+    --deploy-mode cluster \
     --properties-file $SPARK_CONF "$@"
 }
 
 # This is for debug
 # --conf spark.driver.extraJavaOptions='-agentlib:jdwp=transport=dt_socket,server=y,address=4444,suspend=y'
 
-spark_hive() {
-  local app_name=$1
-  shift 1
+spark_hive_run() {
+  local app_name_args=""
+  if [ -n "$APP_NAME" ]; then
+    app_name_args="--name $APP_NAME"
+  fi
 
   read conf_file conf_opt <<< $(handle_conf)
 
@@ -122,12 +131,14 @@ spark_hive() {
   spark_yarn_submit \
     --num-executors $num_executors \
     --executor-cores $num_cores \
-    --executor-memory $exec_mem \
-    --name $app_name \
+    --executor-memory $exec_mem $app_name_args \
     --conf spark.sql.hive.metastore.version=0.13.1 \
     --conf spark.sql.hive.metastore.jars=hive-site.xml:$HIVE_LIB_DIR/* \
     --conf spark.sql.caseSensitive=false \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
+    --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
+    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
+    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
     --driver-class-path $driver_cp \
     --jars $MODULE_LIB_JARS \
     --files $files\
@@ -135,12 +146,24 @@ spark_hive() {
     $MODULE_JAR "$@" $conf_opt
 }
 
+spark_hive() {
+  local app_name=$1
+  shift 1
+
+  APP_NAME=$app_name spark_hive_run "$@"
+}
+
 spark_hive_shell() {
   read conf_file conf_opt <<< $(handle_conf)
 
+  local driver_cp=$CONF_DIR:$GUAVA_CLASSPATH
+  if [ -n "$MODULE_SH_DRIVER_CP_JARS" ]; then
+    driver_cp=$driver_cp:$MODULE_SH_DRIVER_CP_JARS
+  fi
+
   local exec_extra_cp="$GUAVA_CLASSPATH"
   if [ -n "$MODULE_EXEC_CP_JARS" ]; then
-    exec_extra_cp="--conf spark.executor.extraClassPath=$MODULE_EXEC_CP_JARS"
+    exec_extra_cp=$exec_extra_cp:$MODULE_EXEC_CP_JARS
   fi
 
   local num_executors=${EXECUTORS:-12}
@@ -161,7 +184,10 @@ spark_hive_shell() {
     --conf spark.sql.caseSensitive=false \
     --conf spark.app.config=$conf_file \
     --conf spark.executor.extraClassPath=$exec_extra_cp \
-    --driver-class-path $GUAVA_CLASSPATH \
+    --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
+    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
+    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
+    --driver-class-path $driver_cp \
     --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS "$@"
 }
 
