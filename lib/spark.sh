@@ -58,25 +58,40 @@ export LD_LIBRARY_PATH=$CDH_LIB_DIR/hadoop/lib/native
 
 HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
 
-GUAVA_JAR=${GUAVA_JAR:-guava-16.0.1.jar}
 
 SPARK_EXTRA_OPTIONS=${SPARK_EXTRA_OPTIONS:-}
 
+# spark-cassandra-connector uses some methods of guava only in 16.0.1, while Spark 2.0.1 use 14.0.1 and 
+# CDH 5.3.2 uses 11.0.2.
+#
+# To make the applications using spark-cassandra-connector running correctly, we need to put guava-16.0.1 jar
+# at the beginning of both driver class path and executor class paths so that guava-16.0.1.jar will be used.
+#
+# If the guava jar file can be found in $LIB_DIR, it is included in MODULE_LIB_JAR and will be shipped to the 
+# executor YARN container. The classpath of driver (spark-submit) and executors for guava is `./guava-16.0.1.jar`.
+#
+# For spark-shell, the driver runs on the client, not in YARN node manager's container. We should
+# use the local path in `--driver-class-path`.
+#
+GUAVA_JAR=${GUAVA_JAR:-guava-16.0.1.jar}
+
+# This function set two ENV vars: GUAVA_CLASSPATH and GUAVA_LOCAL_PATH. If GUAVA_JAR is in LIB_DIR,
+# use it. Otherwise try to find in CDH distribution.
 setup_guava_path() {
   local cdh_path=$CDH_JARS/$GUAVA_JAR
   local lib_path=$LIB_DIR/$GUAVA_JAR
 
-  if [ -f "$cdh_path" ]; then
-    GUAVA_CLASSPATH=$cdh_path
-  elif [ -f "$lib_path" ]; then
+  if [ -f "$lib_path" ]; then
     GUAVA_CLASSPATH=./$GUAVA_JAR
     GUAVA_LOCAL_PATH=$lib_path
+  elif [ -f "$cdh_path" ]; then
+    GUAVA_CLASSPATH=$cdh_path
+    GUAVA_LOCAL_PATH=$cdh_path
   else
     error "$GUAVA_JAR does not exist at both $cdh_path and $lib_path."
     exit -1
   fi
 }
-
 setup_guava_path
 
 hive_metastore_classpath() {
@@ -110,7 +125,7 @@ spark_hive_run() {
     files=$files,$MODULE_FILES
   fi
 
-  local driver_cp=$(datanucleus_jars):$GUAVA_CLASSPATH
+  local driver_cp=$(datanucleus_jars):$GUAVA_LOCAL_PATH
   if [ -n "$MODULE_DRIVER_CP_JARS" ]; then
     driver_cp=$driver_cp:$MODULE_DRIVER_CP_JARS
   fi
@@ -169,10 +184,6 @@ spark_hive_shell() {
   local num_executors=${EXECUTORS:-12}
   local num_cores=${EXECUTOR_CORES:-3}
   local exec_mem=${EXECUTOR_MEM:-6G}
-
-  if [[ $GUAVA_CLASSPATH =~ ^\. ]]; then
-    SPARK_EXTRA_OPTIONS="$SPARK_EXTRA_OPTIONS --files $GUAVA_LOCAL_PATH"
-  fi
 
   $SPARK_SHELL \
     --master yarn \
