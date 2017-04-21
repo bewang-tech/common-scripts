@@ -36,7 +36,7 @@ handle_conf() {
 }
 
 SPARK_RHAP_HOME=${SPARK_RHAP_HOME:-/opt/spark-rhap}
-SPARK_VERSION=${SPARK_VERSION:-rhap2.0.1}
+SPARK_VERSION=${SPARK_VERSION:-rhap2.1.0}
 SPARK_RHAP=${SPARK_RHAP_HOME}/spark-${SPARK_VERSION}
 
 SPARK_SUBMIT=$SPARK_RHAP/bin/spark-submit
@@ -46,7 +46,7 @@ SPARK_SQL=$SPARK_RHAP/bin/spark-sql
 SPARK_CONF=/etc/spark/conf/spark-defaults.conf
 
 HDFS_NAME_SERVICE=${HDFS_NAME_SERVICE:-$(hdfs getconf -confKey dfs.nameservices)}
-SPARK_RHAP_YARN_ARCHIVE=hdfs://${HDFS_NAME_SERVICE}/bi/spark-rhap/spark-rhap2.0.1.zip 
+SPARK_RHAP_YARN_ARCHIVE=hdfs://${HDFS_NAME_SERVICE}/bi/spark-rhap/spark-${SPARK_VERSION}.zip 
 
 export HADOOP_CONF_DIR=${HADOOP_CONF_DIR:-/etc/hadoop/conf}
 export HIVE_CONF_DIR=${HIVE_CONF_DIR:-/etc/hive/conf}
