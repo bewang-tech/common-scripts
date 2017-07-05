@@ -4,14 +4,6 @@ yarn_num_nodes() {
   yarn node -list | head -1 | awk -F : '{print $2}'
 }
 
-spark_yarn_cluster() {
-  local args=(
-    --master yarn 
-    --deploy-mode cluster 
-    --num-executors $(yarn_num_nodes))
-  echo "${args[@]}"
-}
-
 read_spark_conf() {
    cat $1 | sed 's/^/--conf /' | tr '\n' ' '
 }
@@ -168,7 +160,97 @@ spark_hive() {
   APP_NAME=$app_name spark_hive_run "$@"
 }
 
+# Find the position of delimiter '--' in the arguments.
+# 
+# - no delimiter: return $# + 1
+# - '--' is the last argument: return $# 
+# - with '--' following some arguments: 
+#   return the pos of delimiter. In this case, $pos must smaller than $#
+#
+pos_delimiter() {
+  local pos=1
+  until [ -z "$1" -o "$1" == "--" ]; do
+    pos=$(( pos + 1 ))
+    shift
+  done
+  echo $pos
+}
+
+build_args() {
+  local args=""
+  until [ -z "$1" ]; do
+    if [ -z "$args" ]; then
+      args="\"$1\""
+    else
+      args="$args, \"$1\""
+    fi
+    shift
+  done
+  echo $args
+}
+
+# Generate a Scala script running the specified scala function with the input arguments
+# exit with 0 if everything is ok, or catch and dump the exception,
+# then exit with -1 so that the shell will quit.
+build_run_script() {
+  local func=$1
+  local args=$2
+  echo "
+try {
+  $func(Array($args))
+  sys.exit(0)
+} catch {
+  case e: Throwable =>
+    e.printStackTrace
+    sys.exit(-1)
+}
+  "
+}
+
+module_jars() {
+  echo "$MODULE_JAR,$MODULE_LIB_JARS" | sed -e 's/^,\|,$//'
+}
+
+# allow to run a script then quit the shell with correct an exit status.
+#
+# Assume you want to run the function do_something in $LIB_DIR/script1.scala:
+# script1.scala
+#
+# def do_something(args: Array[String]) = println(s"do something in spark shell ${args.mkString(",")}")
+#
+# The following command will load script1.scala and run do_something with the given arguments
+#
+# spark_hive_shell \
+#   --name run-script-in-spark-shell \
+#   -i $LIB_DIR/script1.scala \
+#   -- do_something arg_1 arg_2 arg_3
+#
+# Notes:
+#   - Give a Spark Application name using --name
+#   - Use '-i' to load the script. If you have multiple script files, you can
+#     load them using one '-i' with multiple file names separated with blank:
+#
+#     -i $LIB_DIR/script1.scala $LIB_DIR/script2.scala $LIB_DIR/script3.scala
+#
+#     or using multiple '-i'
+#
+#     -i $LIB_DIR/script1.scala \
+#     -i $LIB_DIR/script2.scala \
+#     -i $LIB_DIR/script3.scala \
+#   
+#   - Use '--' to separate the spark shell options and the script's function
+#     and arguments. If an arguemnt is a string with spaces, you need to 
+#     double quote it. for example
+#     
+#     -- do_something first_arg "second arg" "third arg"
+#
+#     When it runs, this function will run as below
+#
+#     do_something(Array("first_arg", "second_arg", "third arg"))
+#
 spark_hive_shell() {
+  local pos=$(pos_delimiter "$@")
+
   read conf_file conf_opt <<< $(handle_conf)
 
   local driver_cp=$CONF_DIR:$GUAVA_CLASSPATH
@@ -185,21 +267,42 @@ spark_hive_shell() {
   local num_cores=${EXECUTOR_CORES:-3}
   local exec_mem=${EXECUTOR_MEM:-6G}
 
-  $SPARK_SHELL \
-    --master yarn \
-    --num-executors $num_executors \
-    --executor-cores $num_cores \
-    --executor-memory $exec_mem \
-    --conf spark.sql.hive.metastore.version=0.13.1 \
-    --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
-    --conf spark.sql.caseSensitive=false \
-    --conf spark.app.config=$conf_file \
-    --conf spark.executor.extraClassPath=$exec_extra_cp \
-    --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
-    --conf spark.driver.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
-    --conf spark.executor.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
-    --driver-class-path $driver_cp \
-    --jars $MODULE_JAR,$MODULE_LIB_JARS $SPARK_EXTRA_OPTIONS "$@"
+#  if [[ $GUAVA_CLASSPATH =~ ^\. ]]; then
+#    SPARK_EXTRA_OPTIONS="$SPARK_EXTRA_OPTIONS --files $GUAVA_LOCAL_PATH"
+#  fi
+
+  local jars_opt=""
+  local jars=$(module_jars)
+  if [ -n "$jars" ]; then
+    jars_opt="--jars $jars"
+  fi
+
+  function run_shell() {
+    $SPARK_SHELL \
+      --master yarn \
+      --num-executors $num_executors \
+      --executor-cores $num_cores \
+      --executor-memory $exec_mem \
+      --conf spark.sql.hive.metastore.version=0.13.1 \
+      --conf spark.sql.hive.metastore.jars=$(hive_metastore_classpath) \
+      --conf spark.sql.caseSensitive=false \
+      --conf spark.app.config=$conf_file \
+      --conf spark.executor.extraClassPath=$exec_extra_cp \
+      --conf spark.yarn.archive=$SPARK_RHAP_YARN_ARCHIVE \
+      --conf spark.driver.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
+      --conf spark.executor.extraJavaOptions=-Djava.library.path=$LD_LIBRARY_PATH \
+      --driver-class-path $driver_cp $jars_opt "$@"
+  }
+
+  if [ $pos -lt $# ]; then
+    local func=${@:$(($pos + 1)):1}
+    local args=$(build_args "${@:$(($pos + 2))}")
+    run_shell "${@:1:$(($pos - 1))}" \
+      -i $LIB_DIR/spark_shell_run.scala \
+      -i <(build_script $func "$args")
+  else
+    run_shell "$@"
+  fi
 }
 
 spark_streaming() {
