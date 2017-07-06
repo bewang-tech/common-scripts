@@ -299,7 +299,7 @@ spark_hive_shell() {
     local args=$(build_args "${@:$(($pos + 2))}")
     run_shell "${@:1:$(($pos - 1))}" \
       -i $LIB_DIR/spark_shell_run.scala \
-      -i <(build_script $func "$args")
+      -i <(build_run_script $func "$args")
   else
     run_shell "$@"
   fi
