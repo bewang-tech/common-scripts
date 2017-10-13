@@ -127,9 +127,9 @@ spark_hive_run() {
     exec_extra_cp="$exec_extra_cp:$MODULE_EXEC_CP_JARS"
   fi
 
-  local num_executors=${EXECUTORS:-12}
+  local num_executors=${EXECUTORS:-16}
   local num_cores=${EXECUTOR_CORES:-3}
-  local exec_mem=${EXECUTOR_MEM:-6G}
+  local exec_mem=${EXECUTOR_MEM:-8G}
 
   # for yarn-class mode, we need to use --driver-class-path to put
   # jsch and guava jar before the others in the class path
@@ -263,9 +263,9 @@ spark_hive_shell() {
     exec_extra_cp=$exec_extra_cp:$MODULE_EXEC_CP_JARS
   fi
 
-  local num_executors=${EXECUTORS:-12}
+  local num_executors=${EXECUTORS:-16}
   local num_cores=${EXECUTOR_CORES:-3}
-  local exec_mem=${EXECUTOR_MEM:-6G}
+  local exec_mem=${EXECUTOR_MEM:-8G}
 
 #  if [[ $GUAVA_CLASSPATH =~ ^\. ]]; then
 #    SPARK_EXTRA_OPTIONS="$SPARK_EXTRA_OPTIONS --files $GUAVA_LOCAL_PATH"
