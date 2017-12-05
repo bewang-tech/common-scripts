@@ -35,6 +35,8 @@ SPARK_SUBMIT=$SPARK_RHAP/bin/spark-submit
 SPARK_SHELL=$SPARK_RHAP/bin/spark-shell
 SPARK_SQL=$SPARK_RHAP/bin/spark-sql
 
+PYSPARK=$SPARK_RHAP/bin/pyspark
+
 SPARK_CONF=/etc/spark/conf/spark-defaults.conf
 
 HDFS_NAME_SERVICE=${HDFS_NAME_SERVICE:-$(hdfs getconf -confKey dfs.nameservices)}
@@ -50,6 +52,7 @@ export LD_LIBRARY_PATH=$CDH_LIB_DIR/hadoop/lib/native
 
 HIVE_LIB_DIR=$CDH_LIB_DIR/hive/lib
 
+PYSPARK_PYTHON=${CDH_LIB_DIR}/../../Anaconda/bin/python
 
 SPARK_EXTRA_OPTIONS=${SPARK_EXTRA_OPTIONS:-}
 
@@ -217,6 +220,10 @@ module_jars() {
 # script1.scala
 #
 # def do_something(args: Array[String]) = println(s"do something in spark shell ${args.mkString(",")}")
+# 
+# or
+#
+# def do_something(arg1: String, arg2: String) = println(s"do something in spark shell $arg1 $arg2")
 #
 # The following command will load script1.scala and run do_something with the given arguments
 #
@@ -248,7 +255,7 @@ module_jars() {
 #
 #     do_something(Array("first_arg", "second_arg", "third arg"))
 #
-spark_hive_shell() {
+_spark_hive_shell() {
   local pos=$(pos_delimiter "$@")
 
   read conf_file conf_opt <<< $(handle_conf)
@@ -278,7 +285,7 @@ spark_hive_shell() {
   fi
 
   function run_shell() {
-    $SPARK_SHELL \
+    $SPARK_SHELL_CMD \
       --master yarn \
       --num-executors $num_executors \
       --executor-cores $num_cores \
@@ -302,6 +309,20 @@ spark_hive_shell() {
   else
     run_shell "$@"
   fi
+}
+
+# start Spark scala shell
+spark_hive_shell() {
+  SPARK_SHELL_CMD=$SPARK_SHELL
+
+  _spark_hive_shell "$@"
+}
+
+# start Spark python shell
+pyspark() {
+  SPARK_SHELL_CMD=$PYSPARK
+
+  _spark_hive_shell "$@"
 }
 
 spark_streaming() {
