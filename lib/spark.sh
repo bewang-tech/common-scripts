@@ -200,7 +200,7 @@ build_run_script() {
   local args=$2
   echo "
 try {
-  $func(Array($args))
+  $func($args)
   sys.exit(0)
 } catch {
   case e: Throwable =>
